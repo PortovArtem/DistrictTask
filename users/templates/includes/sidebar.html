@@ -1,0 +1,84 @@
+<!-- Боковое меню -->
+<aside class="w-64 bg-white dark:bg-gray-800 p-6 flex flex-col shadow-lg shrink-0 border-r border-gray-200 dark:border-gray-700">
+    <!-- Логотип / Название проекта -->
+    <div class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-8 flex items-center gap-3">
+        <i data-lucide="layout-grid" class="w-7 h-7 text-blue-600 dark:text-blue-400"></i>
+        DistrictTask
+    </div>
+
+    <!-- Основная навигация -->
+    <nav class="flex flex-col space-y-2 w-full flex-grow">
+        {% with current_url_name=request.resolver_match.url_name %}
+        <!-- Главная -->
+        <a href="{% url 'home' %}" class="flex items-center gap-3 p-3 rounded-xl transition-all font-semibold whitespace-nowrap
+            {% if current_url_name == 'home' %}
+                text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50
+            {% else %}
+                text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50
+            {% endif %}">
+            <i data-lucide="home" class="w-5 h-5 shrink-0
+                {% if current_url_name == 'home' %}text-blue-600 dark:text-blue-400{% else %}text-gray-500 dark:text-gray-400{% endif %}"></i>
+            Главная
+        </a>
+
+        <!-- Пользователи — только для Руководителя и Заместителя -->
+        {% if user.position and user.position.title|lower in "руководитель районного отделения,заместитель руководителя районного отделения" %}
+        <a href="{% url 'user_list' %}" class="flex items-center gap-3 p-3 rounded-xl transition-all font-semibold whitespace-nowrap
+            {% if current_url_name == 'user_list' %}
+                text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50
+            {% else %}
+                text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50
+            {% endif %}">
+            <i data-lucide="users" class="w-5 h-5 shrink-0
+                {% if current_url_name == 'user_list' %}text-blue-600 dark:text-blue-400{% else %}text-gray-500 dark:text-gray-400{% endif %}"></i>
+            Пользователи
+        </a>
+        {% endif %}
+
+        <!-- Задачи -->
+        <a href="{% url 'tasks' %}" class="flex items-center gap-3 p-3 rounded-xl transition-all font-semibold whitespace-nowrap
+            {% if current_url_name == 'tasks' %}
+                text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50
+            {% else %}
+                text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50
+            {% endif %}">
+            <i data-lucide="clipboard-list" class="w-5 h-5 shrink-0
+                {% if current_url_name == 'tasks' %}text-blue-600 dark:text-blue-400{% else %}text-gray-500 dark:text-gray-400{% endif %}"></i>
+            Задачи
+        </a>
+
+        <!-- Отчеты -->
+        <a href="{% url 'reports' %}" class="flex items-center gap-3 p-3 rounded-xl transition-all font-semibold whitespace-nowrap
+            {% if current_url_name == 'reports' %}
+                text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50
+            {% else %}
+                text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50
+            {% endif %}">
+            <i data-lucide="bar-chart-3" class="w-5 h-5 shrink-0
+                {% if current_url_name == 'reports' %}text-blue-600 dark:text-blue-400{% else %}text-gray-500 dark:text-gray-400{% endif %}"></i>
+            Отчеты
+        </a>
+        {% endwith %}
+    </nav>
+
+    <!-- Нижняя часть (Настройки и Выход) -->
+    <div class="mt-auto pt-4 w-full border-t border-gray-200 dark:border-gray-700 space-y-2">
+        <!-- Настройки -->
+        <a href="{% url 'settings' %}" class="flex items-center gap-3 p-3 rounded-xl transition-all font-semibold whitespace-nowrap
+            {% if request.resolver_match.url_name == 'settings' %}
+                text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50
+            {% else %}
+                text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50
+            {% endif %}">
+            <i data-lucide="settings" class="w-5 h-5 shrink-0
+                {% if request.resolver_match.url_name == 'settings' %}text-blue-600 dark:text-blue-400{% else %}text-gray-500 dark:text-gray-400{% endif %}"></i>
+            Настройки
+        </a>
+
+        <!-- Выход -->
+        <button onclick="confirmLogout()" class="w-full flex items-center gap-3 p-3 rounded-xl transition-all font-medium text-gray-700 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400">
+            <i data-lucide="log-out" class="w-5 h-5 shrink-0 text-gray-500 dark:text-gray-400"></i>
+            Выход
+        </button>
+    </div>
+</aside>

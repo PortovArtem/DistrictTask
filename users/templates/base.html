@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ru" class="transition-colors duration-500">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}DistrictTask{% endblock %}</title>
+    {% load static %}
+    <!-- Favicon -->
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <link rel="shortcut icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            transition: color 0.3s;
+        }
+        /* Анимированный градиент */
+        .animated-gradient {
+            background: linear-gradient(120deg, #a8edea, #fed6e3, #cfd9df, #e2ebf0);
+            background-size: 400% 400%;
+            animation: gradientFlow 15s ease infinite;
+        }
+        .dark .animated-gradient {
+            background: linear-gradient(120deg, #0f172a, #1e293b, #334155, #1e293b);
+            background-size: 400% 400%;
+            animation: gradientFlow 15s ease infinite;
+        }
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .glass-panel, .auth-form-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .dark .glass-panel, .dark .auth-form-panel {
+            background: rgba(15, 23, 42, 0.8);
+            border-color: rgba(51, 65, 85, 0.5);
+        }
+        input[type="text"], input[type="email"], input[type="password"], select {
+            @apply w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-600 focus:border-blue-600 transition-colors placeholder:text-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100;
+        }
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            cursor: default;
+        }
+        input, textarea, button, a, label, select, [contenteditable], .cursor-pointer {
+            user-select: auto !important;
+            -webkit-user-select: auto !important;
+            cursor: auto !important;
+        }
+        a:hover, button:hover, [role="button"]:hover, .cursor-pointer:hover {
+            cursor: pointer !important;
+        }
+        /* Кнопка темы */
+        .theme-toggle {
+            position: relative;
+            padding: 0.75rem;
+            border-radius: 1rem;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background-color: #e5e7eb;
+        }
+        .dark .theme-toggle {
+            background-color: #374151;
+        }
+        .theme-toggle::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899, #f59e0b);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            border-radius: 1rem;
+        }
+        .theme-toggle:hover::before {
+            opacity: 0.3;
+        }
+        .theme-toggle i {
+            transition: transform 0.7s ease;
+        }
+        .theme-toggle:hover i {
+            transform: rotate(180deg);
+        }
+        /* Анимация сообщений */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .message-fade-in {
+            animation: fadeInDown 0.4s ease-out;
+        }
+    </style>
+</head>
+<body class="animated-gradient min-h-screen flex flex-col font-sans">
+    {% if user.is_authenticated %}
+        <!-- АВТОРИЗОВАННЫЙ -->
+        <div class="w-full h-screen p-6 md:p-8 flex items-center justify-center">
+            <div class="w-full max-w-7xl h-full glass-panel rounded-3xl shadow-2xl flex overflow-hidden">
+                {% include 'includes/sidebar.html' %}
+                <div class="flex-1 flex flex-col bg-white/30 dark:bg-gray-900/30 relative overflow-y-auto">
+                    <header class="h-16 flex items-center justify-between px-8 border-b border-gray-200/50 dark:border-gray-700 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm sticky top-0 z-20">
+                        <h1 class="text-xl font-bold text-gray-800 dark:text-gray-100">
+                            {% block title_in_header %}{% endblock %}
+                        </h1>
+                        <div class="flex items-center gap-4">
+                            <a href="{% url 'profile' %}" title="Профиль" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">
+                                <i data-lucide="user" class="w-5 h-5"></i>
+                            </a>
+                            <!-- КНОПКА ТЕМЫ -->
+                            <button class="theme-toggle" title="Переключить тему">
+                                <i data-lucide="moon" class="w-7 h-7 hidden dark:block"></i>
+                                <i data-lucide="sun" class="w-7 h-7 block dark:hidden"></i>
+                            </button>
+                            <!-- ВЫХОД — НАДЁЖНЫЙ СПОСОБ БЕЗ CSRF-ОШИБОК -->
+                            <form action="{% url 'logout' %}" method="post" class="inline">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        onclick="return confirm('Вы действительно хотите выйти из аккаунта?')"
+                                        class="text-gray-600 dark:text-gray-300 hover:text-red-500 transition"
+                                        title="Выход">
+                                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </header>
+
+                    <!-- БЛОК СООБЩЕНИЙ -->
+                    {% if messages %}
+                        <div class="mx-8 mt-4 space-y-3">
+                            {% for message in messages %}
+                                <div class="message-fade-in flex items-center gap-3 p-4 rounded-lg shadow-md border
+                                    {% if message.tags == 'error' %}bg-red-100/90 dark:bg-red-900/40 text-red-800 dark:text-red-300 border-red-300 dark:border-red-800{% endif %}
+                                    {% if message.tags == 'success' %}bg-green-100/90 dark:bg-green-900/40 text-green-800 dark:text-green-300 border-green-300 dark:border-green-800{% endif %}
+                                    {% if message.tags == 'info' %}bg-blue-100/90 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-800{% endif %}
+                                    {% if message.tags == 'warning' %}bg-yellow-100/90 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300 border-yellow-300 dark:border-yellow-800{% endif %}
+                                    {% if not message.tags %}bg-gray-100/90 dark:bg-gray-700/40 text-gray-800 dark:text-gray-300 border-gray-300 dark:border-gray-600{% endif %}
+                                    ">
+                                    {% if message.tags == 'success' %}<i data-lucide="check-circle" class="w-5 h-5 flex-shrink-0"></i>{% endif %}
+                                    {% if message.tags == 'error' %}<i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0"></i>{% endif %}
+                                    {% if message.tags == 'info' %}<i data-lucide="info" class="w-5 h-5 flex-shrink-0"></i>{% endif %}
+                                    {% if message.tags == 'warning' %}<i data-lucide="alert-triangle" class="w-5 h-5 flex-shrink-0"></i>{% endif %}
+                                    {% if not message.tags %}<i data-lucide="message-square" class="w-5 h-5 flex-shrink-0"></i>{% endif %}
+                                    <span class="flex-1">{{ message }}</span>
+                                    <button onclick="this.parentElement.style.display='none'" class="ml-auto opacity-60 hover:opacity-100 transition">
+                                        <i data-lucide="x" class="w-5 h-5"></i>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <main class="flex-1 p-4 md:p-8">
+                        {% block content %}{% endblock %}
+                    </main>
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+        <!-- НЕАВТОРИЗОВАННЫЙ -->
+        <header class="bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm shadow-md p-4 flex justify-between items-center w-full sticky top-0 z-10">
+            <a href="{% url 'home' %}" class="text-xl font-bold text-gray-800 dark:text-white">DistrictTask</a>
+            <nav class="flex items-center gap-4">
+                <a href="{% url 'login' %}" class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium">Войти</a>
+                <a href="{% url 'register' %}" class="text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition shadow-lg">Регистрация</a>
+                <!-- Кнопка темы -->
+                <button class="theme-toggle" title="Переключить тему">
+                    <i data-lucide="moon" class="w-7 h-7 hidden dark:block"></i>
+                    <i data-lucide="sun" class="w-7 h-7 block dark:hidden"></i>
+                </button>
+            </nav>
+        </header>
+        <main class="flex-grow container mx-auto p-4 flex items-center justify-center">
+            {% block auth_content %}
+                <div class="w-full max-w-md">
+                    <div class="auth-form-panel">
+                        <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">Добро пожаловать</h2>
+                        <p class="text-gray-600 dark:text-gray-300 mb-6">
+                            Пожалуйста, <a href="{% url 'login' %}" class="text-blue-600 dark:text-blue-400 hover:underline">войдите</a> или
+                            <a href="{% url 'register' %}" class="text-blue-600 dark:text-blue-400 hover:underline">зарегистрируйтесь</a>.
+                        </p>
+                    </div>
+                </div>
+            {% endblock auth_content %}
+        </main>
+        <footer class="bg-gray-800 dark:bg-gray-950 text-white p-4 text-center mt-auto w-full">
+            <p>&copy; 2025 DistrictTask</p>
+        </footer>
+    {% endif %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+
+            const themeToggleButtons = document.querySelectorAll('.theme-toggle');
+
+            function updateIcons() {
+                themeToggleButtons.forEach(btn => {
+                    const moon = btn.querySelector('[data-lucide="moon"]');
+                    const sun = btn.querySelector('[data-lucide="sun"]');
+                    if (document.documentElement.classList.contains('dark')) {
+                        moon.classList.remove('hidden');
+                        moon.classList.add('block');
+                        sun.classList.remove('block');
+                        sun.classList.add('hidden');
+                    } else {
+                        sun.classList.remove('hidden');
+                        sun.classList.add('block');
+                        moon.classList.remove('block');
+                        moon.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Инициализация темы
+            if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            updateIcons();
+
+            // Переключение темы
+            themeToggleButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.documentElement.classList.toggle('dark');
+                    localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+                    updateIcons();
+                });
+            });
+        });
+    </script>
+</body>
+</html>

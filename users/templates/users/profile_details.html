@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block title_in_header %}Мой профиль{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto p-6 sm:p-10">
+    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
+        <!-- Обложка профиля -->
+        <div class="h-48 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 relative">
+            <div class="absolute inset-0 bg-black/20"></div>
+        </div>
+
+        <div class="relative px-8 pb-12 -mt-20">
+            <div class="flex flex-col md:flex-row items-start gap-8">
+                <!-- Аватар с анимацией и оверлеем -->
+                <div class="relative group">
+                    <div class="w-48 h-48 rounded-full overflow-hidden border-8 border-white dark:border-gray-800 shadow-2xl ring-4 ring-indigo-500/30">
+                        <img src="{{ user.get_avatar_url }}?t={{ now }}"
+                             alt="Аватар {{ user.username }}"
+                             id="current-avatar"
+                             class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
+                    </div>
+
+                    <!-- Оверлей с иконкой камеры -->
+                    <div class="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center cursor-pointer"
+                         onclick="openAvatarModal()">
+                        <i data-lucide="camera" class="w-16 h-16 text-white"></i>
+                    </div>
+
+                    <!-- Пульсирующее кольцо при наведении -->
+                    <div class="absolute inset-0 rounded-full ring-4 ring-indigo-500/0 group-hover:ring-indigo-500/50 transition-all duration-500 animate-pulse"></div>
+                </div>
+
+                <!-- Информация о пользователе -->
+                <div class="flex-1 pt-8 md:pt-0">
+                    <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-gray-100 mb-3">
+                        {{ user.get_full_name_official|default:user.username }}
+                    </h1>
+
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 text-lg text-gray-600 dark:text-gray-300">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="briefcase" class="w-6 h-6 text-indigo-600 dark:text-indigo-400"></i>
+                            <span class="font-medium">
+                                {{ user.position.title|default:"Должность не указана" }}
+                            </span>
+                        </div>
+
+                        {% if user.district %}
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="map-pin" class="w-6 h-6 text-purple-600 dark:text-purple-400"></i>
+                            <span class="font-medium">{{ user.district.name }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex items-center gap-2 mt-4 text-gray-500 dark:text-gray-400">
+                        <i data-lucide="mail" class="w-5 h-5"></i>
+                        <span>{{ user.email }}</span>
+                    </div>
+                </div>
+
+                <!-- Кнопка редактирования -->
+                <div class="md:ml-auto md:self-start pt-8">
+                    <a href="{% url 'profile_edit' %}"
+                       class="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-lg rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-indigo-500/30 hover:-translate-y-1">
+                        <i data-lucide="pencil" class="w-6 h-6"></i>
+                        Редактировать профиль
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО ЗАГРУЗКИ АВАТАРА -->
+<div id="avatarModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full p-8 transform scale-95 transition-transform">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                Сменить аватар
+            </h3>
+            <button onclick="closeAvatarModal()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition">
+                <i data-lucide="x" class="w-8 h-8"></i>
+            </button>
+        </div>
+
+        <p class="text-gray-600 dark:text-gray-400 mb-8 text-lg">
+            Выберите новое фото. Рекомендуемый размер — квадратное изображение.
+        </p>
+
+        <form id="avatarForm" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="border-4 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl p-8 text-center hover:border-indigo-500 dark:hover:border-indigo-400 transition">
+                <input type="file" name="avatar" id="avatar-input" accept="image/*" required
+                       class="hidden">
+                <label for="avatar-input" class="cursor-pointer">
+                    <i data-lucide="upload-cloud" class="w-16 h-16 text-gray-400 dark:text-gray-500 mb-4"></i>
+                    <p class="text-xl font-medium text-gray-700 dark:text-gray-300">
+                        Нажмите, чтобы выбрать фото
+                    </p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                        JPG, PNG, GIF до 10 МБ
+                    </p>
+                </label>
+            </div>
+
+            <div id="selected-filename" class="mt-6 text-center text-gray-700 dark:text-gray-300 font-medium hidden"></div>
+
+            <div class="flex justify-end gap-4 mt-8">
+                <button type="button" onclick="closeAvatarModal()"
+                        class="px-8 py-4 rounded-2xl bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-bold text-lg transition">
+                    Отмена
+                </button>
+                <button type="submit"
+                        class="px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold text-lg shadow-lg transition">
+                    Загрузить аватар
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        lucide.createIcons();
+
+        const modal = document.getElementById('avatarModal');
+        const form = document.getElementById('avatarForm');
+        const input = document.getElementById('avatar-input');
+        const filenameDisplay = document.getElementById('selected-filename');
+        const currentAvatar = document.getElementById('current-avatar');
+
+        window.openAvatarModal = function() {
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.querySelector('.transform').classList.replace('scale-95', 'scale-100'), 10);
+        }
+
+        window.closeAvatarModal = function() {
+            modal.querySelector('.transform').classList.replace('scale-100', 'scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        // Показ имени файла
+        input.addEventListener('change', function() {
+            if (input.files && input.files[0]) {
+                filenameDisplay.textContent = 'Выбрано: ' + input.files[0].name;
+                filenameDisplay.classList.remove('hidden');
+            }
+        });
+
+        // Загрузка аватара
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const file = input.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('avatar', file);
+
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            fetch('/upload-avatar/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': csrfToken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    currentAvatar.src = data.avatar_url + '?t=' + new Date().getTime();
+                    closeAvatarModal();
+                    // Красивое уведомление
+                    const notification = document.createElement('div');
+                    notification.className = 'fixed bottom-8 right-8 bg-green-600 text-white px-8 py-4 rounded-2xl shadow-2xl text-xl font-bold z-50 animate-pulse';
+                    notification.textContent = 'Аватар обновлён!';
+                    document.body.appendChild(notification);
+                    setTimeout(() => notification.remove(), 3000);
+                } else {
+                    alert('Ошибка загрузки аватара');
+                }
+            })
+            .catch(() => alert('Ошибка сети'));
+        });
+    });
+</script>
+{% endblock %}

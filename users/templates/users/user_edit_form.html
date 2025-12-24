@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title_in_header %}Редактирование профиля{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white p-8 md:p-12 rounded-3xl shadow-2xl border border-gray-100">
+        <h1 class="text-3xl font-extrabold text-gray-800 mb-8 border-b pb-4 flex items-center gap-3">
+            <i data-lucide="user-cog" class="w-8 h-8 text-blue-600"></i>
+            Редактирование профиля
+        </h1>
+
+        <!-- Информация о редактируемом пользователе -->
+        <div class="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-200">
+            <p class="text-lg text-blue-900">
+                Редактируется профиль:
+                <span class="font-bold">
+                    {{ target_user.get_full_name_official|default:target_user.username }}
+                </span>
+                {% if target_user.district %}
+                    ({{ target_user.district.name }})
+                {% endif %}
+            </p>
+            {% if target_user == user %}
+                <p class="text-sm text-blue-700 mt-2">Это ваш личный профиль.</p>
+            {% else %}
+                <p class="text-sm text-blue-700 mt-2">Редактирование от имени руководителя.</p>
+            {% endif %}
+        </div>
+
+        <!-- АВАТАР — ТОЛЬКО ДЛЯ ПРОСМОТРА -->
+        <div class="mb-10 text-center">
+            <div class="inline-block relative">
+                {% if target_user.avatar %}
+                    <img src="{{ target_user.avatar.url }}" alt="Аватар {{ target_user.username }}"
+                         class="w-32 h-32 rounded-full object-cover border-4 border-blue-200 shadow-lg">
+                {% else %}
+                    <div class="w-32 h-32 rounded-full bg-gray-200 border-4 border-dashed border-gray-400 flex items-center justify-center">
+                        <i data-lucide="user" class="w-16 h-16 text-gray-400"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <p class="text-sm text-gray-500 mt-4">
+                Аватар может изменить только сам пользователь в своём личном профиле.
+            </p>
+        </div>
+
+        <!-- ФОРМА — БЕЗ ПОЛЯ АВАТАРА -->
+        <form method="post" class="space-y-7">
+            {% csrf_token %}
+
+            {% if form.fields %}
+                {% for field in form %}
+                <div class="relative">
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ field.label }}
+                        {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+                    </label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
+                    {% endif %}
+                    {% if field.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ field.errors|join:", " }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <!-- Кнопки -->
+                <div class="flex justify-end gap-4 pt-6 border-t border-gray-200">
+                    <a href="{% if user.position and 'руководитель' in user.position.title|lower and user.district == target_user.district %}
+                                {% url 'user_list' %}
+                              {% else %}
+                                {% url 'profile' %}
+                              {% endif %}"
+                       class="px-6 py-3 text-sm font-semibold rounded-xl text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors">
+                        Отмена
+                    </a>
+                    <button type="submit" class="px-6 py-3 text-sm font-semibold rounded-xl text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-lg">
+                        Сохранить изменения
+                    </button>
+                </div>
+            {% else %}
+                <div class="text-center py-12">
+                    <p class="text-2xl font-bold text-gray-700 mb-4">Редактирование недоступно</p>
+                    <p class="text-gray-600 mb-8">
+                        Вы не можете редактировать этот профиль.<br>
+                        Ключевые данные может изменить только Руководитель районного отделения.
+                    </p>
+                    <a href="{% url 'profile' %}" class="inline-block px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-2xl shadow-lg transition">
+                        Вернуться в профиль
+                    </a>
+                </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        lucide.createIcons();
+    });
+</script>
+{% endblock content %}

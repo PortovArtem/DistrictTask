@@ -1,0 +1,275 @@
+{% extends "base_auth.html" %}
+
+{% block auth_content %}
+<div class="w-full max-w-md">
+    <div class="glass-panel text-center pb-12 rounded-3xl md:rounded-[2.5rem] shadow-2xl backdrop-blur-xl border border-white/20">
+        <h2 class="text-3xl font-bold mt-8 mb-8 text-gray-800 dark:text-white leading-snug">
+            Регистрация<br>участника района
+        </h2>
+
+        <form method="post" class="text-left px-6">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-6 text-sm text-center">
+                <strong class="font-bold">Ошибка:</strong>
+                <ul class="list-none mt-1">
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <div id="form-scroll-container" class="space-y-6 max-h-[520px] overflow-y-auto pr-2 pb-4 custom-scrollbar mt-4">
+
+                <!-- ФАМИЛИЯ -->
+                <div class="relative pl-2">
+                    <input type="text" name="last_name" placeholder="Фамилия"
+                           class="w-full bg-gray-100 dark:bg-gray-200 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-gray-500 dark:placeholder-gray-700 text-lg {% if form.last_name.errors %}input-error{% endif %}"
+                           required id="id_last_name" value="{{ form.last_name.value|default_if_none:'' }}">
+                    {% if form.last_name.errors %}
+                    <p class="text-xs text-red-500 mt-1 pl-1">{{ form.last_name.errors|join:" " }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- ИМЯ -->
+                <div class="relative pl-2">
+                    <input type="text" name="first_name" placeholder="Имя"
+                           class="w-full bg-gray-100 dark:bg-gray-200 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-gray-500 dark:placeholder-gray-700 text-lg {% if form.first_name.errors %}input-error{% endif %}"
+                           required id="id_first_name" value="{{ form.first_name.value|default_if_none:'' }}">
+                    {% if form.first_name.errors %}
+                    <p class="text-xs text-red-500 mt-1 pl-1">{{ form.first_name.errors|join:" " }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- ОТЧЕСТВО -->
+                <div class="relative pl-2">
+                    <input type="text" name="middle_name" placeholder="Отчество (при наличии)"
+                           class="w-full bg-gray-100 dark:bg-gray-200 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-gray-500 dark:placeholder-gray-700 text-lg {% if form.middle_name.errors %}input-error{% endif %}"
+                           id="id_middle_name" value="{{ form.middle_name.value|default_if_none:'' }}">
+                    {% if form.middle_name.errors %}
+                    <p class="text-xs text-red-500 mt-1 pl-1">{{ form.middle_name.errors|join:" " }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- ТИП РЕГИСТРАЦИИ -->
+                <div class="relative pl-2">
+                    <label for="id_department_type" class="block text-sm font-medium text-gray-700 dark:text-gray-800 mb-1 ml-1">
+                        Тип регистрации
+                    </label>
+                    {{ form.department_type }}
+                    {% if form.department_type.errors %}
+                    <p class="text-xs text-red-500 mt-1 pl-1">{{ form.department_type.errors|join:" " }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- СООБЩЕНИЕ "В РАЗРАБОТКЕ" -->
+                <div id="apparat_message" class="hidden text-center p-6 bg-yellow-50 dark:bg-yellow-200 border border-yellow-300 rounded-xl text-yellow-800 font-medium">
+                    Регистрация в Аппарате пока в разработке.<br>
+                    Скоро будет доступна!
+                </div>
+
+                <!-- ПОЛЯ ДЛЯ РАЙОННОГО ОТДЕЛЕНИЯ -->
+                <div id="district_fields" class="hidden space-y-6 transition-all">
+
+                    <!-- РАЙОН -->
+                    <div class="relative pl-2">
+                        <label for="id_district" class="block text-sm font-medium text-gray-700 dark:text-gray-800 mb-1 ml-1">
+                            Район
+                        </label>
+                        {{ form.district }}
+                        {% if form.district.errors %}
+                        <p class="text-xs text-red-500 mt-1 pl-1">{{ form.district.errors|join:" " }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- ДОЛЖНОСТЬ — динамическая через AJAX -->
+                    <div class="relative pl-2">
+                        <label for="id_position" class="block text-sm font-medium text-gray-700 dark:text-gray-800 mb-1 ml-1">
+                            Должность
+                        </label>
+                        <select name="position" id="id_position" required class="w-full bg-gray-100 dark:bg-gray-200 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 transition-all appearance-none text-gray-700 dark:text-black text-lg">
+                            <option value="">Сначала выберите район</option>
+                        </select>
+                        <p id="position-error" class="text-xs text-red-500 mt-1 pl-1 hidden"></p>
+                    </div>
+
+                </div>
+
+                <div class="pt-4 border-t border-gray-200 dark:border-gray-700"></div>
+
+                <!-- ЛОГИН -->
+                <div class="relative pl-2">
+                    <input type="text" name="username" placeholder="Логин (обязательно)"
+                           class="w-full bg-gray-100 dark:bg-gray-200 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-gray-500 dark:placeholder-gray-700 text-lg {% if form.username.errors %}input-error{% endif %}"
+                           required id="id_username" value="{{ form.username.value|default_if_none:'' }}">
+                    {% if form.username.errors %}
+                    <p class="text-xs text-red-500 mt-1 pl-1">{{ form.username.errors|join:" " }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- EMAIL -->
+                <div class="relative pl-2">
+                    <label for="id_email" class="block text-sm font-medium text-gray-700 dark:text-gray-800 mb-1 ml-1">Email</label>
+                    <input type="email" name="email" placeholder="your@email.com"
+                           class="w-full bg-gray-100 dark:bg-gray-200 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-gray-500 dark:placeholder-gray-700 text-lg {% if form.email.errors %}input-error{% endif %}"
+                           required id="id_email" value="{{ form.email.value|default_if_none:'' }}">
+                    {% if form.email.errors %}
+                    <p class="text-xs text-red-500 mt-1 pl-1">{{ form.email.errors|join:" " }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- ПАРОЛЬ -->
+                <div class="relative pl-2">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-800 mb-1 ml-1">Пароль</label>
+                    <div class="relative">
+                        <input type="password" name="password1" autocomplete="new-password"
+                               class="w-full bg-gray-100 dark:bg-gray-200 border border-gray-200 rounded-xl pl-4 pr-12 py-3 outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-gray-500 dark:placeholder-gray-700 text-lg {% if form.password1.errors %}input-error{% endif %}"
+                               id="id_password1" placeholder="Придумайте пароль" required>
+                        <button type="button" class="absolute inset-y-0 right-0 pr-5 flex items-center text-gray-500 hover:text-gray-700 toggle-password z-10" data-target="id_password1">
+                            <i data-lucide="eye-off" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+                    {% if form.password1.errors %}
+                    <p class="text-xs text-red-500 mt-1 pl-1">{{ form.password1.errors|join:" " }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- ПОДТВЕРЖДЕНИЕ ПАРОЛЯ -->
+                <div class="relative pl-2">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-800 mb-1 ml-1">Подтверждение пароля</label>
+                    <div class="relative">
+                        <input type="password" name="password2" autocomplete="new-password"
+                               class="w-full bg-gray-100 dark:bg-gray-200 border border-gray-200 rounded-xl pl-4 pr-12 py-3 outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-gray-500 dark:placeholder-gray-700 text-lg {% if form.password2.errors %}input-error{% endif %}"
+                               id="id_password2" placeholder="Повторите пароль" required>
+                        <button type="button" class="absolute inset-y-0 right-0 pr-5 flex items-center text-gray-500 hover:text-gray-700 toggle-password z-10" data-target="id_password2">
+                            <i data-lucide="eye-off" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+                    {% if form.password2.errors %}
+                    <p class="text-xs text-red-500 mt-1 pl-1">{{ form.password2.errors|join:" " }}</p>
+                    {% endif %}
+                </div>
+
+            </div>
+
+            <button type="submit" id="submit-btn"
+                    class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700
+                           text-white font-semibold text-lg rounded-2xl py-5 mt-6
+                           transition-all duration-200 active:scale-[0.98]
+                           shadow-lg hover:shadow-xl shadow-blue-500/50">
+                Зарегистрироваться
+            </button>
+        </form>
+
+        <div class="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <p class="text-gray-600 dark:text-gray-300 text-center">
+                Уже есть аккаунт?
+                <a href="/login/" class="font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors underline">
+                    Войти
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    lucide.createIcons();
+
+    const departmentSelect = document.getElementById('id_department_type');
+    const apparatMessage = document.getElementById('apparat_message');
+    const districtFields = document.getElementById('district_fields');
+    const submitBtn = document.getElementById('submit-btn');
+    const districtSelect = document.getElementById('id_district');
+    const positionSelect = document.getElementById('id_position');
+
+    function updateForm() {
+        const value = departmentSelect.value;
+
+        if (value === 'apparat') {
+            apparatMessage.classList.remove('hidden');
+            districtFields.classList.add('hidden');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-60', 'cursor-not-allowed');
+        } else if (value === 'district') {
+            apparatMessage.classList.add('hidden');
+            districtFields.classList.remove('hidden');
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+        } else {
+            apparatMessage.classList.add('hidden');
+            districtFields.classList.add('hidden');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-60', 'cursor-not-allowed');
+        }
+    }
+
+    if (departmentSelect) {
+        departmentSelect.addEventListener('change', updateForm);
+        updateForm();
+    }
+
+    // AJAX-загрузка должностей при смене района
+    if (districtSelect && positionSelect) {
+        districtSelect.addEventListener('change', function() {
+            const districtId = this.value;
+
+            positionSelect.disabled = true;
+            positionSelect.innerHTML = '<option value="">Загрузка...</option>';
+
+            if (!districtId) {
+                positionSelect.innerHTML = '<option value="">Сначала выберите район</option>';
+                positionSelect.disabled = true;
+                return;
+            }
+
+            fetch(`/get-positions/?district_id=${districtId}`)
+                .then(response => response.json())
+                .then(data => {
+                    positionSelect.innerHTML = '<option value="">Выберите должность</option>';
+                    if (data.positions && data.positions.length > 0) {
+                        data.positions.forEach(pos => {
+                            const option = document.createElement('option');
+                            option.value = pos.id;
+                            option.textContent = pos.title;
+                            positionSelect.appendChild(option);
+                        });
+                    } else {
+                        positionSelect.innerHTML = '<option value="">Нет доступных должностей</option>';
+                    }
+                    positionSelect.disabled = false;
+                })
+                .catch(err => {
+                    console.error('Ошибка загрузки должностей:', err);
+                    positionSelect.innerHTML = '<option value="">Ошибка загрузки</option>';
+                    positionSelect.disabled = true;
+                });
+        });
+
+        if (districtSelect.value) {
+            districtSelect.dispatchEvent(new Event('change'));
+        }
+    }
+
+    // Глазики для пароля
+    document.querySelectorAll('.toggle-password').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const target = document.getElementById(this.dataset.target);
+            const icon = this.querySelector('i');
+            if (target && icon) {
+                if (target.type === 'password') {
+                    target.type = 'text';
+                    icon.setAttribute('data-lucide', 'eye');
+                } else {
+                    target.type = 'password';
+                    icon.setAttribute('data-lucide', 'eye-off');
+                }
+                lucide.createIcons();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

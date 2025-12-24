@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title_in_header %}Главная{% endblock %}
+
+{% block content %}
+<div class="p-6 sm:p-8 space-y-8">
+    <!-- Приветствие -->
+    <div class="bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-8 rounded-3xl shadow-2xl">
+        <h1 class="text-4xl font-bold mb-3">
+            Добро пожаловать, {{ user.first_name|default:user.username }}!
+        </h1>
+        <p class="text-xl text-indigo-100 opacity-90">
+            Районное отделение: <strong>{{ user.district.name }}</strong>
+        </p>
+    </div>
+
+    <!-- Фото команды -->
+    {% if user.district.team_photo %}
+    <div class="relative w-full rounded-3xl shadow-2xl overflow-hidden border border-gray-200">
+        <img src="{{ user.district.team_photo.url }}?t={{ now }}"
+             alt="Команда {{ user.district.name }}"
+             class="w-full h-96 md:h-[70vh] lg:h-[80vh] object-cover">
+        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-8">
+            <p class="text-2xl md:text-3xl lg:text-4xl font-bold text-white drop-shadow-lg">
+                Наша команда — {{ user.district.name }}
+            </p>
+        </div>
+    </div>
+    {% else %}
+    <div class="w-full bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300 rounded-3xl shadow-2xl p-12 md:p-20 text-center border-4 border-dashed border-gray-400">
+        <p class="text-3xl font-bold text-gray-700 mb-6">Фотография команды ещё не добавлена</p>
+        {% if is_leader %}
+        <p class="text-xl text-indigo-600 font-semibold">
+            Вы можете загрузить её в разделе <a href="{% url 'settings' %}" class="underline hover:text-indigo-800">Настройки</a>
+        </p>
+        {% else %}
+        <p class="text-xl text-gray-600">
+            Руководитель отделения добавит её в ближайшее время.
+        </p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Подвал -->
+    <div class="text-center py-12">
+        <p class="text-gray-500 dark:text-gray-400 text-lg italic">
+            DistrictTask — система управления районным отделением Молодой Гвардии
+        </p>
+    </div>
+</div>
+{% endblock content %}

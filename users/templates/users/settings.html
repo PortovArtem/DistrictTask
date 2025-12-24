@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% block title_in_header %}Настройки{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-6 sm:p-8">
+    <h1 class="text-4xl font-extrabold text-gray-800 dark:text-gray-100 mb-10">
+        Настройки
+    </h1>
+
+    <div class="space-y-12">
+
+        <!-- Секция 1: Внешний вид и Тема -->
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                Внешний вид
+            </h2>
+            <p class="text-gray-600 dark:text-gray-300 mb-8">
+                Настройте визуальное отображение интерфейса.
+            </p>
+
+            <div class="space-y-8">
+                <!-- Переключатель темы -->
+                <div class="flex items-center justify-between">
+                    <div>
+                        <label class="block text-lg font-medium text-gray-900 dark:text-gray-100">
+                            Тема интерфейса
+                        </label>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            Переключение между светлой и тёмной цветовой схемой.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button id="theme-light" class="theme-btn px-6 py-3 rounded-2xl font-medium transition flex items-center gap-3 shadow-lg">
+                            <i data-lucide="sun" class="w-6 h-6"></i>
+                            Светлая
+                        </button>
+                        <button id="theme-dark" class="theme-btn px-6 py-3 rounded-2xl font-medium transition flex items-center gap-3 shadow-lg">
+                            <i data-lucide="moon" class="w-6 h-6"></i>
+                            Тёмная
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Язык -->
+                <div class="flex items-center justify-between">
+                    <div>
+                        <label class="block text-lg font-medium text-gray-900 dark:text-gray-100">
+                            Язык интерфейса
+                        </label>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            На данный момент доступен только русский язык.
+                        </p>
+                    </div>
+                    <select disabled class="px-4 py-3 border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 rounded-2xl text-gray-600 dark:text-gray-400 cursor-not-allowed">
+                        <option>Русский</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Секция 2: Фото команды района — ТОЛЬКО ДЛЯ РУКОВОДИТЕЛЯ -->
+        {% if is_leader %}
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">
+                Фото команды района ({{ user.district.name }})
+            </h2>
+
+            <!-- Текущее фото -->
+            {% if user.district.team_photo %}
+            <div class="mb-8">
+                <p class="text-lg text-gray-600 dark:text-gray-300 mb-4">Текущее фото:</p>
+                <img src="{{ user.district.team_photo.url }}?t={{ now }}" alt="Команда" class="w-full max-h-96 object-cover rounded-2xl shadow-lg">
+            </div>
+            <p class="text-gray-600 dark:text-gray-300 mb-6">
+                Вы можете заменить фото команды ниже.
+            </p>
+            {% else %}
+            <p class="text-gray-600 dark:text-gray-300 mb-6">
+                Фото команды ещё не загружено. Добавьте его ниже.
+            </p>
+            {% endif %}
+
+            <!-- Форма загрузки -->
+            <form id="team-photo-form" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="flex flex-col md:flex-row items-center gap-6">
+                    <input type="file" name="team_photo" id="team-photo-input" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 cursor-pointer">
+                    <button type="submit" class="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-2xl shadow-lg transition flex items-center gap-2">
+                        <i data-lucide="upload" class="w-6 h-6"></i>
+                        {% if user.district.team_photo %}Заменить фото{% else %}Загрузить фото{% endif %}
+                    </button>
+                </div>
+            </form>
+
+            <div id="upload-status" class="mt-6 text-center text-lg"></div>
+        </div>
+        {% endif %}
+
+        <!-- Секция 3: Уведомления -->
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                Уведомления
+            </h2>
+            <p class="text-gray-600 dark:text-gray-300 mb-8">
+                Настройка получения оповещений о новых событиях и изменениях.
+            </p>
+
+            <div class="p-6 bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-500 dark:border-yellow-600 rounded-xl">
+                <div class="flex items-center gap-4">
+                    <i data-lucide="bell" class="w-8 h-8 text-yellow-600 dark:text-yellow-400 flex-shrink-0"></i>
+                    <p class="text-gray-800 dark:text-yellow-200 font-medium">
+                        Настройки уведомлений (по Email, Telegram, SMS) будут добавлены в следующих обновлениях.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Секция 4: Безопасность -->
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                Безопасность
+            </h2>
+            <p class="text-gray-600 dark:text-gray-300 mb-8">
+                Настройки аккаунта и защиты данных.
+            </p>
+
+            <div class="p-6 bg-red-50 dark:bg-red-900/30 border-l-4 border-red-500 dark:border-red-600 rounded-xl">
+                <div class="flex items-center gap-4">
+                    <i data-lucide="lock" class="w-8 h-8 text-red-600 dark:text-red-400 flex-shrink-0"></i>
+                    <p class="text-gray-800 dark:text-red-200 font-medium">
+                        Смена пароля и двухфакторная аутентификация будут доступны в ближайших обновлениях.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        lucide.createIcons();
+
+        // Переключатель темы
+        const html = document.documentElement;
+        const lightBtn = document.getElementById('theme-light');
+        const darkBtn = document.getElementById('theme-dark');
+
+        function updateTheme() {
+            if (localStorage.theme === 'dark' || (!localStorage.theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                html.classList.add('dark');
+                lightBtn.classList.remove('bg-indigo-600', 'text-white');
+                lightBtn.classList.add('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+                darkBtn.classList.add('bg-indigo-600', 'text-white');
+                darkBtn.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+            } else {
+                html.classList.remove('dark');
+                lightBtn.classList.add('bg-indigo-600', 'text-white');
+                lightBtn.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+                darkBtn.classList.remove('bg-indigo-600', 'text-white');
+                darkBtn.classList.add('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+            }
+        }
+
+        updateTheme();
+
+        lightBtn.addEventListener('click', () => {
+            html.classList.remove('dark');
+            localStorage.theme = 'light';
+            updateTheme();
+        });
+
+        darkBtn.addEventListener('click', () => {
+            html.classList.add('dark');
+            localStorage.theme = 'dark';
+            updateTheme();
+        });
+
+        // Загрузка фото команды
+        const form = document.getElementById('team-photo-form');
+        const input = document.getElementById('team-photo-input');
+        const status = document.getElementById('upload-status');
+
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const file = input.files[0];
+                if (!file) {
+                    status.innerHTML = '<p class="text-red-600">Выберите фото!</p>';
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('team_photo', file);
+
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                formData.append('csrfmiddlewaretoken', csrfToken);
+
+                status.innerHTML = '<p class="text-blue-600">Загрузка...</p>';
+
+                fetch('/upload-team-photo/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        status.innerHTML = '<p class="text-green-600 font-bold text-2xl">Фото успешно обновлено!</p>';
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        status.innerHTML = `<p class="text-red-600">${data.message || 'Ошибка загрузки'}</p>`;
+                    }
+                })
+                .catch(() => {
+                    status.innerHTML = '<p class="text-red-600">Ошибка сети</p>';
+                });
+            });
+        }
+    });
+</script>
+{% endblock content %}

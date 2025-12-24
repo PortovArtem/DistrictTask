@@ -1,0 +1,126 @@
+{% extends "base_auth.html" %}
+
+{% block auth_content %}
+
+<!-- ПОДКЛЮЧЕНИЕ ИКОНОК LUCIDE -->
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<div class="w-full max-w-md">
+    <!-- Основная карточка -->
+    <div class="glass-panel text-center pb-12 rounded-3xl md:rounded-[2.5rem] shadow-2xl backdrop-blur-xl border border-white/20">
+
+        <!-- Заголовок -->
+        <h2 class="text-3xl font-bold mt-8 mb-10 text-gray-800 leading-snug">
+            Вход в систему
+        </h2>
+
+        <form method="post" class="text-left px-6">
+            {% csrf_token %}
+
+            <!-- Общая ошибка формы -->
+            {% if form.non_field_errors %}
+                <div class="mb-5 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm">
+                    {{ form.non_field_errors|join:" " }}
+                </div>
+            {% endif %}
+
+            <!-- Поле Логин -->
+            <div class="relative mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">Логин</label>
+                <input type="text"
+                       name="{{ form.username.name }}"
+                       id="{{ form.username.id_for_label }}"
+                       class="w-full px-5 py-4 rounded-2xl bg-white/70 backdrop-blur-sm border border-gray-200 
+                              focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 
+                              transition-all outline-none text-lg placeholder-gray-400"
+                       placeholder="Введите логин"
+                       autocomplete="username"
+                       required>
+                {% if form.username.errors %}
+                    <p class="text-red-500 text-xs mt-1.5">{{ form.username.errors|join:" " }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Поле Пароль + глазики -->
+            <div class="relative mb-5">
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">Пароль</label>
+                <div class="relative">
+                    <input type="password"
+                           name="{{ form.password.name }}"
+                           id="{{ form.password.id_for_label }}"
+                           class="w-full px-5 py-4 rounded-2xl bg-white/70 backdrop-blur-sm border border-gray-200 
+                                  focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 
+                                  transition-all outline-none text-lg placeholder-gray-400 pr-14"
+                           placeholder="Введите пароль"
+                           autocomplete="current-password"
+                           required>
+                    <!-- Кнопка "глазик" -->
+                    <button type="button" 
+                            class="absolute inset-y-0 right-0 pr-5 flex items-center text-gray-500 hover:text-gray-700 toggle-password z-10"
+                            data-target="{{ form.password.id_for_label }}">
+                        <i data-lucide="eye-off" class="w-6 h-6"></i>
+                    </button>
+                </div>
+                {% if form.password.errors %}
+                    <p class="text-red-500 text-xs mt-1.5">{{ form.password.errors|join:" " }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Запомнить меня -->
+            <div class="flex items-center justify-between mb-8">
+                <label class="flex items-center cursor-pointer select-none">
+                    <input type="checkbox" name="remember_me" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
+                    <span class="ml-3 text-gray-700 font-medium">Запомнить меня</span>
+                </label>
+                <a href="{% url 'password_reset' %}" class="text-sm text-blue-600 hover:underline">Забыли пароль?</a>
+            </div>
+
+            <!-- Кнопка Войти (увеличена высота: py-5 вместо py-4.5) -->
+            <button type="submit" 
+                    class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 
+                           text-white font-semibold text-lg rounded-2xl py-5 mt-4 
+                           transition-all duration-200 active:scale-[0.98] 
+                           shadow-lg hover:shadow-xl shadow-blue-500/50">
+                Войти
+            </button>
+        </form>
+
+        <!-- Ссылка на регистрацию -->
+        <div class="mt-10 pt-8 border-t border-gray-200/50">
+            <p class="text-gray-600">
+                Ещё нет аккаунта? 
+                <a href="{% url 'register' %}" 
+                   class="font-semibold text-blue-600 hover:text-blue-700 transition-colors">
+                    Зарегистрироваться
+                </a>
+            </p>
+        </div>
+
+    </div>
+</div>
+
+<!-- Скрипт для глазки пароля -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
+        document.querySelectorAll('.toggle-password').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const target = document.getElementById(this.dataset.target);
+                const icon = this.querySelector('i');
+                if (target.type === 'password') {
+                    target.type = 'text';
+                    icon.setAttribute('data-lucide', 'eye');
+                } else {
+                    target.type = 'password';
+                    icon.setAttribute('data-lucide', 'eye-off');
+                }
+                lucide.createIcons();
+            });
+        });
+    });
+</script>
+
+{% endblock auth_content %}

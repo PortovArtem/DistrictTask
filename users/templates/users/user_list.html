@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title_in_header %}Пользователи{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto p-6 md:p-8">
+    <!-- Заголовок -->
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-4xl font-extrabold text-gray-800 flex items-center gap-4">
+            <i data-lucide="users" class="w-10 h-10 text-blue-600"></i>
+            Список активистов ({{ users|length }})
+        </h1>
+    </div>
+
+    <!-- Поиск -->
+    <div class="mb-8">
+        <input type="text" id="searchInput" placeholder="Поиск по имени, фамилии или должности..."
+               class="w-full max-w-md px-5 py-3 border border-gray-300 rounded-2xl focus:ring-4 focus:ring-blue-500/30 focus:border-blue-500 transition-shadow text-lg">
+    </div>
+
+    <!-- Список пользователей — ОПТИМАЛЬНЫЙ РАЗМЕР КАРТОЧЕК -->
+    {% if users %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        {% for user in users %}
+        <div class="bg-white rounded-3xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden flex flex-col">
+            <!-- АВАТАРКА — оптимальная высота -->
+            <div class="relative h-64">
+                <img src="{{ user.get_avatar_url }}"
+                     alt="Аватар {{ user.username }}"
+                     class="w-full h-full object-cover">
+                {% if not user.avatar %}
+                <div class="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                    <span class="text-6xl font-bold text-white opacity-90">
+                        {{ user.first_name.0|upper|default:"U" }}{{ user.last_name.0|upper|default:"" }}
+                    </span>
+                </div>
+                {% endif %}
+
+                <!-- Значок роли -->
+                {% if "руководитель" in user.position.title|lower %}
+                    <div class="absolute top-3 right-3 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow">
+                        Руководитель
+                    </div>
+                {% elif "заместитель" in user.position.title|lower %}
+                    <div class="absolute top-3 right-3 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow">
+                        Заместитель
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Информация — оптимальные отступы и шрифты -->
+            <div class="p-6 text-center flex-1 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2 line-clamp-2">
+                        {{ user.get_full_name_official|default:user.username }}
+                    </h3>
+                    <p class="text-base text-gray-700 font-medium mb-3 line-clamp-2">
+                        {{ user.position.title|default:"Должность не указана" }}
+                    </p>
+                    <p class="text-sm text-gray-500 break-all">
+                        {{ user.email }}
+                    </p>
+                </div>
+
+                <!-- Кнопки — влезают, компактные -->
+                {% if request.user.position and "руководитель" in request.user.position.title|lower %}
+                <div class="mt-5 flex justify-center gap-3">
+                    <a href="{% url 'user_edit' user.pk %}"
+                       class="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow transition">
+                        <i data-lucide="pencil" class="w-5 h-5"></i>
+                    </a>
+
+                    <button onclick="openDeleteModal({{ user.pk }}, '{{ user.get_full_name_official|default:user.username|escapejs }}')"
+                            class="p-3 bg-red-600 hover:bg-red-700 text-white rounded-xl shadow transition">
+                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-20 bg-white rounded-3xl shadow-lg border border-gray-100">
+        <i data-lucide="users" class="w-20 h-20 mx-auto text-gray-300 mb-6"></i>
+        <p class="text-2xl font-bold text-gray-700 mb-3">В вашем районе пока нет других активистов</p>
+        <p class="text-gray-500">Вы — первый! Приглашайте коллег через регистрацию.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО УДАЛЕНИЯ -->
+<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+        <h3 class="text-2xl font-bold text-gray-800 mb-4">Подтвердите удаление</h3>
+        <p class="text-gray-600 mb-8">
+            Вы уверены, что хотите удалить пользователя <span id="deleteUserName" class="font-bold"></span>?
+            Это действие необратимо.
+        </p>
+        <div class="flex justify-end gap-4">
+            <button onclick="closeDeleteModal()" class="px-6 py-3 bg-gray-200 hover:bg-gray-300 rounded-xl font-medium">
+                Отмена
+            </button>
+            <form id="deleteForm" method="post" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium shadow-lg">
+                    Удалить
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        lucide.createIcons();
+
+        // Поиск
+        const searchInput = document.getElementById('searchInput');
+        const cards = document.querySelectorAll('.grid > div');
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+    });
+
+    // Модалка удаления
+    function openDeleteModal(userId, userName) {
+        document.getElementById('deleteUserName').textContent = userName;
+        document.getElementById('deleteForm').action = `/users/${userId}/delete/`;
+        document.getElementById('deleteModal').classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.add('hidden');
+    }
+
+    document.getElementById('deleteModal').addEventListener('click', function(e) {
+        if (e.target === this) closeDeleteModal();
+    });
+</script>
+{% endblock content %}
